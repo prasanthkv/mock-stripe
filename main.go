@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"os"
 )
 
 
@@ -14,6 +15,8 @@ func main() {
 	//
 	route := mux.NewRouter()
 	route.HandleFunc("/version", VersionHandler).
+		Methods("GET")
+	route.HandleFunc("/exit", ExitHandler).
 		Methods("GET")
 	//auth flow
 	route.HandleFunc("/v1/charges", AuthauthorizeHandler).
@@ -31,4 +34,9 @@ func main() {
 func VersionHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "{\"version\": \"mock-1.0.0\"}")
 	log.Println("authauthorize")
+}
+
+
+func ExitHandler(w http.ResponseWriter, r *http.Request) {
+	os.Exit(3)
 }
