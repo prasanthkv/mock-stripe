@@ -28,7 +28,7 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	header.Set("idempotency-key", idempotencyKey)
 	//make hash of form this will help maintain idempotency
 	formHash := MD5Hash(r.Form)
-	header.Set("request_id", formHash)
+	header.Set("request-md5", formHash)
 	//
 	cObject, found := authCache.Get(idempotencyKey)
 	//check for idem request
@@ -153,7 +153,6 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(chargeObject)
 			//should be the last
 			status = http.StatusOK
-			fmt.Println(" AuthauthorizeHandler : StatusOK")
 			//cache charge
 			chargeCache.Set(chargeId, chargeObject, cache.DefaultExpiration)
 		}
@@ -172,6 +171,8 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		//should be the last
 		w.WriteHeader(status)
 	}
+	//the end
+	fmt.Println(" AuthauthorizeHandler : END ")
 }
 
 func LastFour(value int64) (trimValue string) {
