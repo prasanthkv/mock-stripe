@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"time"
-
+	
 	"github.com/patrickmn/go-cache"
 )
 
@@ -28,23 +28,25 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	//check for idem request
 	if found {
 		header.Set("replay", "true")
-		//TODO: copy old request_id
-		header.Set("original-request", requestId)
+		//
+		cacheObject := cObject.(CacheObject)
+		//
+		header.Set("original-request", cacheObject.RequestId)
 		//return
-		fmt.Fprintln(w, json.NewEncoder(w).Encode(cObject.(ChargeObject)))
+		if cacheObject.Status == 200{
+			fmt.Fprintln(w, json.NewEncoder(w).Encode(cacheObject.Charge))
+		}else{
+			fmt.Fprintln(w, json.NewEncoder(w).Encode(cacheObject.Error))
+		}
 		//should be the last
 		w.WriteHeader(http.StatusOK)
 	} else {
 		header.Set("original-request", requestId)
-
 		chargeRequest, errorObject, status := ValidateAndMapAuth(r)
+		chargeObject := ChargeObject{}
 		//declined
 		if status != http.StatusOK {
 			fmt.Fprintln(w, json.NewEncoder(w).Encode(errorObject))
-			//put object into cache
-			authCache.Set(idempotencyKey, errorObject, cache.DefaultExpiration);
-			//should be the last
-			w.WriteHeader(status)
 		} else {
 			//new charge id
 			newId := CreateChargeId()
@@ -104,7 +106,7 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 			}
 
 			//create response
-			chargeObject := ChargeObject{
+			chargeObject = ChargeObject{
 				ID:             chargeId,
 				Status:         "succeeded",
 				Object:         "charge",
@@ -127,15 +129,25 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 				chargeObject.Review = "prv_"+newId
 				chargeObject.Outcome = elevatedOutcome
 			}
-			//put object into cache
-			authCache.Set(idempotencyKey, chargeObject, cache.DefaultExpiration);
 
 			//return
 			fmt.Fprintln(w, json.NewEncoder(w).Encode(chargeObject))
 			//should be the last
-			w.WriteHeader(http.StatusOK)
+			status = http.StatusOK
 			fmt.Println(" AuthauthorizeHandler : StatusOK")
 		}
+		//put object into cache
+		cacheObject := CacheObject{
+			RequestId: requestId,
+			Charge:chargeObject,
+			Error: errorObject,
+			Status: status,
+			Idempotency:idempotencyKey,
+			RequestHash:"todo",
+		}
+		authCache.Set(idempotencyKey, cacheObject, cache.DefaultExpiration)
+		//should be the last
+		w.WriteHeader(status)
 	}
 }
 

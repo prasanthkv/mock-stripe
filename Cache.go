@@ -13,8 +13,9 @@ var idempotencyCache = cache.New(5*time.Hour, 5*time.Hour)
 
 type CacheObject struct {
 	Status      int
+	RequestId	string
 	RequestHash string
 	Idempotency string
 	Charge      ChargeObject
-	Error       ErrorObject
+	Error       ErrorResponse
 }
