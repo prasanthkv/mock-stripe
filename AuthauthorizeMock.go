@@ -6,12 +6,15 @@ import (
 	"encoding/json"
 	"strconv"
 	"time"
-	
+
 	"github.com/patrickmn/go-cache"
 )
 
 //
 func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
+	//build the form
+	r.ParseForm()
+	fmt.Println(r.Form)
 	//
 	requestId := CreateRequestId()
 	fmt.Println("AuthauthorizeHandler : Init")
@@ -23,23 +26,37 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	//copy the idempotency key to response
 	idempotencyKey := r.Header.Get("idempotency-key")
 	header.Set("idempotency-key", idempotencyKey)
-
+	//make hash of form this will help maintain idempotency
+	formHash := MD5Hash(r.Form)
+	header.Set("request_id", formHash)
+	//
 	cObject, found := authCache.Get(idempotencyKey)
 	//check for idem request
 	if found {
-		header.Set("replay", "true")
-		//
 		cacheObject := cObject.(CacheObject)
 		//
-		header.Set("original-request", cacheObject.RequestId)
-		//return
-		if cacheObject.Status == 200{
-			fmt.Fprintln(w, json.NewEncoder(w).Encode(cacheObject.Charge))
-		}else{
-			fmt.Fprintln(w, json.NewEncoder(w).Encode(cacheObject.Error))
+		if (cacheObject.RequestHash == formHash) {
+			//
+			header.Set("original-request", cacheObject.RequestId)
+			//return
+			if cacheObject.Status == 200 {
+				fmt.Fprintln(w, json.NewEncoder(w).Encode(cacheObject.Charge))
+			} else {
+				fmt.Fprintln(w, json.NewEncoder(w).Encode(cacheObject.Error))
+			}
+			//should be the last
+			w.WriteHeader(cacheObject.Status)
+		} else {
+			//end user is trying to access service with the same request format
+			errorObjects := ErrorResponse{
+				Error: ErrorObject{
+					Type : "idempotency_error",
+					Message :"Keys for idempotent requests can only be used with the same parameters they were first used with. Try using a key other than 'key2' if you meant to execute a different request.",
+				},
+			}
+			fmt.Fprintln(w, json.NewEncoder(w).Encode(errorObjects))
+			w.WriteHeader(http.StatusBadRequest)
 		}
-		//should be the last
-		w.WriteHeader(http.StatusOK)
 	} else {
 		header.Set("original-request", requestId)
 		chargeRequest, errorObject, status := ValidateAndMapAuth(r)
@@ -126,7 +143,7 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 
 			//Charge succeeds with a risk_level of elevated
 			if chargeRequest.Source.Number == 4000000000000036 {
-				chargeObject.Review = "prv_"+newId
+				chargeObject.Review = "prv_" + newId
 				chargeObject.Outcome = elevatedOutcome
 			}
 
@@ -138,12 +155,12 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		//put object into cache
 		cacheObject := CacheObject{
-			RequestId: requestId,
-			Charge:chargeObject,
-			Error: errorObject,
-			Status: status,
-			Idempotency:idempotencyKey,
-			RequestHash:"todo",
+			RequestId:   requestId,
+			Charge:      chargeObject,
+			Error:       errorObject,
+			Status:      status,
+			Idempotency: idempotencyKey,
+			RequestHash: formHash,
 		}
 		authCache.Set(idempotencyKey, cacheObject, cache.DefaultExpiration)
 		//should be the last

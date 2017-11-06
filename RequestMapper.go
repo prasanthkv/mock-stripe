@@ -14,9 +14,6 @@ func ValidateAndMapAuth(r *http.Request) (chargeRequest ChargeRequest, errorObje
 		Error: ErrorObject{
 		},
 	}
-	//build the form
-	r.ParseForm()
-	fmt.Println(r.Form)
 	//evaluate card
 	cardName := r.Form["source[name]"][0]
 	cardObject := r.Form["source[object]"][0]
