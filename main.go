@@ -14,9 +14,9 @@ func main() {
 
 	//
 	route := mux.NewRouter()
-	route.HandleFunc("/version", VersionHandler).
+	route.HandleFunc("/v1/version", VersionHandler).
 		Methods("GET")
-	route.HandleFunc("/exit", ExitHandler).
+	route.HandleFunc("/server/exit", ExitHandler).
 		Methods("GET")
 	//auth flow
 	route.HandleFunc("/v1/charges", AuthauthorizeHandler).
@@ -32,8 +32,8 @@ func main() {
 }
 
 func VersionHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "{\"version\": \"mock-1.0.0\"}")
-	log.Println("authauthorize")
+	fmt.Fprintln(w, "{\"version\": \"mock-1.0.1\", \"build_date\":\"nov-5-2017\"}")
+	log.Println("versionn")
 }
 
 
