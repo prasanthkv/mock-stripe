@@ -15,13 +15,13 @@ func ValidateAndMapAuth(r *http.Request) (chargeRequest ChargeRequest, errorObje
 		},
 	}
 	//evaluate card
-	cardName := r.Form["source[name]"][0]
-	cardObject := r.Form["source[object]"][0]
-	cardCVV, err := strconv.Atoi(r.Form["source[exp_year]"][0])
+	cardName := FindFist(r.Form["source[name]"])
+	cardObject := FindFist(r.Form["source[object]"])
+	cardCVV, err := strconv.Atoi(FindFist(r.Form["source[exp_year]"]))
 	//
-	cardNumber, err := strconv.ParseInt(r.Form["source[number]"][0], 10, 64)
-	cardExpMonth, err := strconv.Atoi(r.Form["source[exp_month]"][0])
-	cardExpYear, err := strconv.Atoi(r.Form["source[exp_year]"][0])
+	cardNumber, err := strconv.ParseInt(FindFist(r.Form["source[number]"]), 10, 64)
+	cardExpMonth, err := strconv.Atoi(FindFist(r.Form["source[exp_month]"]))
+	cardExpYear, err := strconv.Atoi(FindFist(r.Form["source[exp_year]"]))
 	//validate card number
 	if cardNumber <= 0 {
 		errorObjects.Error.Type = "invalid_request_error"
@@ -64,17 +64,17 @@ func ValidateAndMapAuth(r *http.Request) (chargeRequest ChargeRequest, errorObje
 		ExpYear:        cardExpYear,
 		Object:         cardObject,
 		CVV:            cardCVV,
-		AddressCity:    r.Form["source[address_city]"][0],
-		AddressCountry: r.Form["source[address_country]"][0],
-		AddressLine1:   r.Form["source[address_line1]"][0],
-		AddressLine2:   r.Form["source[address_line2]"][0],
-		AddressState:   r.Form["source[address_state]"][0],
-		AddressZip:     r.Form["source[address_zip]"][0],
+		AddressCity:    FindFist(r.Form["source[address_city]"]),
+		AddressCountry: FindFist(r.Form["source[address_country]"]),
+		AddressLine1:   FindFist(r.Form["source[address_line1]"]),
+		AddressLine2:   FindFist(r.Form["source[address_line2]"]),
+		AddressState:   FindFist(r.Form["source[address_state]"]),
+		AddressZip:     FindFist(r.Form["source[address_zip]"]),
 	}
 	//evaluate rest of the request
-	reqCurrency := r.Form["currency"][0]
-	reqCapture, err := strconv.ParseBool(r.Form["currency"][0])
-	reqAmount, err := strconv.Atoi(r.Form["amount"][0])
+	reqCurrency := FindFist(r.Form["currency"])
+	reqCapture, err := strconv.ParseBool(FindFist(r.Form["currency"]))
+	reqAmount, err := strconv.Atoi(FindFist(r.Form["amount"]))
 	//amount should be more than 50c
 	if reqAmount < 50 {
 		errorObjects.Error.Type = "invalid_request_error"
@@ -88,7 +88,7 @@ func ValidateAndMapAuth(r *http.Request) (chargeRequest ChargeRequest, errorObje
 		Capture:     reqCapture,
 		Currency:    reqCurrency,
 		Source:      source,
-		Description: r.Form["description"][0],
+		Description: FindFist(r.Form["description"]),
 	}
 	//
 	fmt.Println("Valid Request")
@@ -133,4 +133,11 @@ func ValidateAndMapAuth(r *http.Request) (chargeRequest ChargeRequest, errorObje
 		httpStatus = http.StatusOK
 	}
 	return chargeRequest, errorObjects, httpStatus;
+}
+
+func FindFist(arrayValue []string) (string){
+	if len(arrayValue) > 0{
+		return arrayValue[0]
+	}
+	return  ""
 }

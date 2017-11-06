@@ -57,7 +57,7 @@ func CaptureHandler(w http.ResponseWriter, r *http.Request) {
 	if found {
 		//process
 		chargeObject := chargeObj.(ChargeObject)
-		reqAmount, err := strconv.Atoi(r.Form["amount"][0])
+		reqAmount, err := strconv.Atoi(FindFist(r.Form["amount"]))
 		//
 		print(err)
 		//
