@@ -51,10 +51,11 @@ type Outcome struct {
 }
 
 type Refunds struct {
-	Object     string `json:"object,omitempty"`
-	HasMore    bool   `json:"has_more"`
-	TotalCount int    `json:"total_count"`
-	URL        string `json:"url,omitempty"`
+	Object     string       `json:"object,omitempty"`
+	HasMore    bool         `json:"has_more"`
+	TotalCount int          `json:"total_count"`
+	URL        string       `json:"url,omitempty"`
+	Data       []RefundData `json:"data,omitempty"`
 }
 
 type Source struct {
@@ -96,4 +97,15 @@ type ErrorObject struct {
 	Code        string `json:"code,omitempty"`
 	Charge      string `json:"charge,omitempty"`
 	DeclineCode string `json:"decline_code,omitempty"`
+}
+
+type RefundData struct {
+	Amount             int    `json:"amount"`
+	BalanceTransaction string `json:"balance_transaction"`
+	Charge             string `json:"charge"`
+	Created            int64    `json:"created"`
+	Currency           string `json:"currency"`
+	ID                 string `json:"id"`
+	Object             string `json:"object"`
+	Status             string `json:"status"`
 }

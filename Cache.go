@@ -21,6 +21,7 @@ type CacheObject struct {
 	Idempotency string
 	Charge      ChargeObject
 	Error       ErrorResponse
+	Type		string
 }
 
 func MD5Hash(v interface{}) (string) {

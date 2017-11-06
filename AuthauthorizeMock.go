@@ -35,14 +35,14 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	if found {
 		cacheObject := cObject.(CacheObject)
 		//
-		if (cacheObject.RequestHash == formHash) {
+		if cacheObject.RequestHash == formHash && cacheObject.Type == "auth" {
 			//
 			header.Set("original-request", cacheObject.RequestId)
-			//return
+			//return /write to stream
 			if cacheObject.Status == 200 {
-				fmt.Fprintln(w, json.NewEncoder(w).Encode(cacheObject.Charge))
+				json.NewEncoder(w).Encode(cacheObject.Charge)
 			} else {
-				fmt.Fprintln(w, json.NewEncoder(w).Encode(cacheObject.Error))
+				json.NewEncoder(w).Encode(cacheObject.Error)
 			}
 			//should be the last
 			w.WriteHeader(cacheObject.Status)
@@ -54,7 +54,8 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 					Message :"Keys for idempotent requests can only be used with the same parameters they were first used with. Try using a key other than 'key2' if you meant to execute a different request.",
 				},
 			}
-			fmt.Fprintln(w, json.NewEncoder(w).Encode(errorObjects))
+			//write to stream
+			json.NewEncoder(w).Encode(errorObjects)
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	} else {
@@ -63,7 +64,8 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		chargeObject := ChargeObject{}
 		//declined
 		if status != http.StatusOK {
-			fmt.Fprintln(w, json.NewEncoder(w).Encode(errorObject))
+			//write to stream
+			json.NewEncoder(w).Encode(errorObject)
 		} else {
 			//new charge id
 			newId := CreateChargeId()
@@ -147,11 +149,13 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 				chargeObject.Outcome = elevatedOutcome
 			}
 
-			//return
-			fmt.Fprintln(w, json.NewEncoder(w).Encode(chargeObject))
+			//return write to stream
+			json.NewEncoder(w).Encode(chargeObject)
 			//should be the last
 			status = http.StatusOK
 			fmt.Println(" AuthauthorizeHandler : StatusOK")
+			//cache charge
+			chargeCache.Set(chargeId, chargeObject, cache.DefaultExpiration)
 		}
 		//put object into cache
 		cacheObject := CacheObject{
@@ -161,7 +165,9 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 			Status:      status,
 			Idempotency: idempotencyKey,
 			RequestHash: formHash,
+			Type: "auth",
 		}
+		//set item
 		authCache.Set(idempotencyKey, cacheObject, cache.DefaultExpiration)
 		//should be the last
 		w.WriteHeader(status)
