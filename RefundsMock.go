@@ -95,11 +95,11 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 	//
 	//check for cached void object
 	//
-	chargeObj, found := voidCache.Get(captureId)
+	cachedObj, found := voidCache.Get(captureId)
 	if found {
 		fmt.Println("RefundsHandler : cache fault:" + idempotencyKey)
 		//get capture object from cache
-		cacheObject := chargeObj.(CacheObject)
+		cacheObject := cachedObj.(CacheObject)
 		//copy original request id
 		header.Set("original-request", cacheObject.RequestId)
 		//write to stream
@@ -120,21 +120,21 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 	//original request id and request id will be same this case
 	header.Set("original-request", requestId)
 	//evaluate auth & capture
-	chargeObj, found = captureCache.Get(captureId)
+	cachedObj, found = captureCache.Get(captureId)
 	flow := "Auth"
 	//
 	if !found {
 		flow = "Capture"
 		//void auth before capture
-		chargeObj, found = authCache.Get(captureId)
+		cachedObj, found = chargeCache.Get(captureId)
 	}
 	//
 	// all set
 	//
 	if found {
-		fmt.Println("RefundsHandler : " + flow + " flow for :" + captureId)
+		fmt.Println("RefundsHandler : " + flow + " found for " + captureId)
 		//process
-		chargeObject := chargeObj.(ChargeObject)
+		chargeObject := (cachedObj.(CacheObject)).Charge
 		//
 		reqAmount, err := strconv.Atoi(FindFist(r.Form["amount"]))
 		reqReason := FindFist(r.Form["amount"])
@@ -221,6 +221,4 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	//write http status
 	w.WriteHeader(httpStatus)
-	//we are exiting with out caching error cases
-	return
 }

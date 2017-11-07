@@ -10,6 +10,8 @@ import (
 )
 
 //
+//
+//
 func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("AuthauthorizeHandler : INIT")
 	//build the form
@@ -234,6 +236,10 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	//set item
 	authCache.Set(idempotencyKey, cacheableObject, cache.DefaultExpiration)
+	//add to charge cache in case of success event
+	if status == http.StatusOK{
+		chargeCache.Set(chargeObject.ID, cacheableObject, cache.DefaultExpiration)
+	}
 	//should be the last
 	w.WriteHeader(status)
 	//the end
