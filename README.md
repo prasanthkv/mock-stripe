@@ -1,4 +1,5 @@
-# mock-stripe  ![version](https://img.shields.io/badge/version-1.0.1--Mock-orange.svg?style=flat)
+# mock-stripe  ![version](https://img.shields.io/badge/version-1.0.1--Mock-orange.svg?style=flat) ![License: MIT](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)
+
 
 mock-stripe is a mock HTTP server that responds like the real Stripe API. It
 can be used instead of Stripe's testmode to make test suites integrating with
@@ -43,7 +44,12 @@ By default, stripe-mock runs on port 8080, but is configurable with the
 ## Development
 TBD
 
+## Supported Operations
 
-<!--
-# vim: set tw=79:
--->
+- [x] Auth
+- [x] Capture
+- [x] Refund
+
+## License
+
+CreditCardForm is available under the MIT license. See the LICENSE file for more info.
