@@ -184,6 +184,7 @@ func CaptureHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				//set refund
 				chargeObject.Refunds = refunds
+				chargeObject.Refunded = true
 			}
 			//success-write to stream
 			json.NewEncoder(w).Encode(chargeObject)

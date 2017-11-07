@@ -137,7 +137,7 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 		chargeObject := (cachedObj.(CacheObject)).Charge
 		//
 		reqAmount, err := strconv.Atoi(FindFist(r.Form["amount"]))
-		reqReason := FindFist(r.Form["amount"])
+		reqReason := FindFist(r.Form["reason"])
 		//
 		fmt.Println("RefundsHandler : Start", err)
 		//
@@ -152,7 +152,7 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			//write to stream
 			json.NewEncoder(w).Encode(errorObjects)
-		} else if chargeObject.Amount > reqAmount {
+		} else if chargeObject.Amount < reqAmount {
 			//charge amount should be greater than requested amount
 			errorObjects := ErrorResponse{
 				Error: ErrorObject{
@@ -163,7 +163,7 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			//write to stream
 			json.NewEncoder(w).Encode(errorObjects)
-		} else if reqReason != "" && !(reqReason == "duplicate" || reqReason == "fraudulent" || reqReason == "requested_by_customer") {
+		} else if reqReason != "" && reqReason != "duplicate" && reqReason != "fraudulent" && reqReason != "requested_by_customer" {
 			//reason is an enum
 			errorObjects := ErrorResponse{
 				Error: ErrorObject{
@@ -175,14 +175,14 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 			//write to stream
 			json.NewEncoder(w).Encode(errorObjects)
 		} else {
-			refundAmount := chargeObject.Amount - reqAmount
+			baakiAmount := chargeObject.Amount - reqAmount
 			refundId := "txn_" + CreateChargeId()
 			chargeObject.Captured = true
 			//set refund object
 			refundData := RefundData{
 				ID:                 "re_" + CreateChargeId(),
 				Object:             "refund",
-				Amount:             refundAmount,
+				Amount:             reqAmount,
 				BalanceTransaction: refundId,
 				Charge:             captureId,
 				Created:            Timestamp(),
@@ -203,7 +203,7 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 			//cache item for next use
 			voidCache.Set(captureId, cacheableObject, cache.DefaultExpiration)
 			//print
-			fmt.Println("RefundsHandler : mock object created")
+			fmt.Println("RefundsHandler : mock object created with baaki" + strconv.Itoa(baakiAmount))
 		}
 	} else {
 		//end user is trying to access service with the same request format
