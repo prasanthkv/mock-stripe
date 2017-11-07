@@ -1,5 +1,4 @@
-# mock-stripe  [![Build Status](https://mock-stripe)](https://img.shields.io/badge/version-1.0.1--Mock-orange.svg?style=flat)
-
+# mock-stripe  ![version](https://img.shields.io/badge/version-1.0.1--Mock-orange.svg?style=flat)
 
 mock-stripe is a mock HTTP server that responds like the real Stripe API. It
 can be used instead of Stripe's testmode to make test suites integrating with
