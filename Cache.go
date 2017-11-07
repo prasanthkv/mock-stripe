@@ -22,9 +22,9 @@ type CacheObject struct {
 	RequestHash string
 	Idempotency string
 	Charge      ChargeObject
-	Refund		RefundData
+	Refund      RefundData
 	Error       ErrorResponse
-	Type		string
+	Type        string
 }
 
 func MD5Hash(v interface{}) (string) {
@@ -44,8 +44,8 @@ func MD5Hash(v interface{}) (string) {
 var idempotencyCache = cache.New(5*time.Hour, 5*time.Hour)
 //
 type Idempotency struct {
-	Type      string
+	Type        string
 	RequestId   string
-	ChargeId	string
+	ChargeId    string
 	RequestHash string
 }

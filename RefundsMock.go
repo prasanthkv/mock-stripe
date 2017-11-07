@@ -152,7 +152,7 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			//write to stream
 			json.NewEncoder(w).Encode(errorObjects)
-		} else if chargeObject.Amount < reqAmount {
+		} else if chargeObject.Amount < (chargeObject.AmountRefunded + reqAmount) {
 			//charge amount should be greater than requested amount
 			errorObjects := ErrorResponse{
 				Error: ErrorObject{
@@ -175,7 +175,7 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 			//write to stream
 			json.NewEncoder(w).Encode(errorObjects)
 		} else {
-			baakiAmount := chargeObject.Amount - reqAmount
+			//refund is posible only upto refund amount
 			refundId := "txn_" + CreateChargeId()
 			chargeObject.Captured = true
 			//set refund object
@@ -203,7 +203,7 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 			//cache item for next use
 			voidCache.Set(captureId, cacheableObject, cache.DefaultExpiration)
 			//print
-			fmt.Println("RefundsHandler : mock object created with baaki" + strconv.Itoa(baakiAmount))
+			fmt.Println("RefundsHandler : mock object created")
 		}
 	} else {
 		//end user is trying to access service with the same request format
