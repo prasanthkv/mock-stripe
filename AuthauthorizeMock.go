@@ -14,7 +14,9 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("AuthauthorizeHandler : INIT")
 	//build the form
 	r.ParseForm()
+	fmt.Println("-----")
 	fmt.Println(r.Form)
+	fmt.Println("-----")
 	httpStatus := http.StatusBadRequest
 	//
 	// Set all Headers
@@ -48,18 +50,19 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 		//
 		exit := true
 		if idempotency.Type == "capture" {
-			fmt.Println("capture key found")
+			fmt.Println("AuthauthorizeHandler : idempotency capture key found")
 			//end user is trying to access capture with same idempotency as of capture.
 			errorObjects.Error.Message = "Keys for idempotent requests can only be used for the same endpoint they were first used for ('/v1/charges' vs '/v1/charges/" + idempotency.ChargeId + "/capture'). Try using a key other than '" + idempotencyKey + "' if you meant to execute a different request."
 		} else if idempotency.Type == "void" {
-			fmt.Println("void key found")
+			fmt.Println("AuthauthorizeHandler : idempotency void key found")
 			//end user is trying to access capture with same idempotency as of void with different form parameters.
 			errorObjects.Error.Message = "Keys for idempotent requests can only be used for the same endpoint they were first used for ('/v1/charges' vs '/v1/charges/" + idempotency.ChargeId + "/refunds'). Try using a key other than '" + idempotencyKey + "' if you meant to execute a different request."
 		} else if idempotency.Type == "auth" && idempotency.RequestHash != formHash {
-			fmt.Println("auth key found")
+			fmt.Println("AuthauthorizeHandler : idempotency auth key found with md5:" + formHash)
 			//end user is trying to access capture with same idempotency as of auth.
 			errorObjects.Error.Message = "Keys for idempotent requests can only be used with the same parameters they were first used with. Try using a key other than '" + idempotencyKey + "' if you meant to execute a different request."
 		} else {
+			fmt.Println("AuthauthorizeHandler : idempotency auth key cache")
 			//this would be a request for cached auth
 			exit = false
 		}
@@ -109,7 +112,7 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	//
 	// First time request
 	//
-	fmt.Println("Refunds :First time request")
+	fmt.Println("AuthauthorizeHandler :First time request")
 	//original request id and request id will be same this case
 	header.Set("original-request", requestId)
 	//
@@ -135,7 +138,7 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 			ID:          cardId,
 			Object:      "card",
 			Fingerprint: CreateFingerPrint(),
-			Funding:     "credit", //TODO Test card to funding type mapping 
+			Funding:     "credit", //TODO Test card to funding type mapping
 			Last4:       LastFour(chargeRequest.Source.Number),
 			//
 			Brand:   "Visa", //TODO support test card id to brand mapping

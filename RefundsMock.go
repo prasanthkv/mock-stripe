@@ -14,9 +14,12 @@ import (
 // https://stripe.com/docs/api#create_refund-charge
 //
 func RefundsHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("RefundsHandler : INIT")
 	//build the form
 	r.ParseForm()
+	fmt.Println("-----")
 	fmt.Println(r.Form)
+	fmt.Println("-----")
 	httpStatus := http.StatusBadRequest
 	//capture id
 	vars := mux.Vars(r)
@@ -42,8 +45,8 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 	idempotencyObj, found := idempotencyCache.Get(idempotencyKey)
 	//found
 	if found {
+		fmt.Println("RefundsHandler : idempotency found for key: " + idempotencyKey)
 		//response object
-		//
 		errorObjects := ErrorResponse{
 			Error: ErrorObject{
 				Type: "idempotency_error",
@@ -54,19 +57,20 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 		//
 		exit := true
 		if idempotency.Type == "auth" {
-			fmt.Println("auth key found")
+			fmt.Println("RefundsHandler : idempotency auth key found")
 			//end user is trying to access capture with same idempotency as of auth.
 			errorObjects.Error.Message = "Keys for idempotent requests can only be used for the same endpoint they were first used for ('/v1/charges/" + captureId + "/refunds' vs '/v1/charges'). Try using a key other than '" + idempotencyKey + "' if you meant to execute a different request."
 		} else if idempotency.Type == "capture" {
-			fmt.Println("capture key found")
+			fmt.Println("RefundsHandler : idempotency capture key found")
 			//end user is trying to access capture with same idempotency as of capture.
 			errorObjects.Error.Message = "Keys for idempotent requests can only be used for the same endpoint they were first used for ('/v1/charges/" + captureId + "/refunds' vs '/v1/charges/" + captureId + "/capture'). Try using a key other than '" + idempotencyKey + "' if you meant to execute a different request."
 		} else if idempotency.Type == "void" && idempotency.RequestHash != formHash {
-			fmt.Println("void key found")
+			fmt.Println("RefundsHandler : idempotency void key found with md5:" + formHash)
 			//end user is trying to access capture with same idempotency as of void with different form parameters.
 			errorObjects.Error.Message = "Keys for idempotent requests can only be used with the same parameters they were first used with. Try using a key other than '" + idempotencyKey + "' if you meant to execute a different request."
 		} else {
 			//valid request lets process
+			fmt.Println("RefundsHandler : idempotency auth key cache")
 			exit = false
 		}
 		// idempotency error so exit
@@ -78,10 +82,11 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		//new request
+		fmt.Println("RefundsHandler : new request with idempotency key: " + idempotencyKey)
 		idempotency := Idempotency{
 			Type:        "void",
-			RequestId: requestId,
-			ChargeId : captureId,
+			RequestId:   requestId,
+			ChargeId:    captureId,
 			RequestHash: formHash,
 		}
 		//set cache for next use
@@ -92,6 +97,7 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 	//
 	chargeObj, found := voidCache.Get(captureId)
 	if found {
+		fmt.Println("RefundsHandler : cache fault:" + idempotencyKey)
 		//get capture object from cache
 		cacheObject := chargeObj.(CacheObject)
 		//copy original request id
@@ -110,13 +116,15 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 	//
 	// First time request
 	//
-	fmt.Println("Refunds :First time request")
+	fmt.Println("RefundsHandler :First time request")
 	//original request id and request id will be same this case
 	header.Set("original-request", requestId)
 	//evaluate auth & capture
 	chargeObj, found = captureCache.Get(captureId)
+	flow := "Auth"
 	//
 	if !found {
+		flow = "Capture"
 		//void auth before capture
 		chargeObj, found = authCache.Get(captureId)
 	}
@@ -124,13 +132,14 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 	// all set
 	//
 	if found {
+		fmt.Println("RefundsHandler : " + flow + " flow for :" + captureId)
 		//process
 		chargeObject := chargeObj.(ChargeObject)
 		//
 		reqAmount, err := strconv.Atoi(FindFist(r.Form["amount"]))
 		reqReason := FindFist(r.Form["amount"])
 		//
-		print(err)
+		fmt.Println("RefundsHandler : Start", err)
 		//
 		if reqAmount <= 0 {
 			//charge amount should not be less than requested amount
@@ -193,6 +202,8 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 			//cache item for next use
 			voidCache.Set(captureId, cacheableObject, cache.DefaultExpiration)
+			//print
+			fmt.Println("RefundsHandler : mock object created")
 		}
 	} else {
 		//end user is trying to access service with the same request format
@@ -205,6 +216,8 @@ func RefundsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		//write error message
 		fmt.Fprintln(w, json.NewEncoder(w).Encode(errorObjects))
+		//
+		fmt.Println("RefundsHandler : No such charge: " + captureId)
 	}
 	//write http status
 	w.WriteHeader(httpStatus)
