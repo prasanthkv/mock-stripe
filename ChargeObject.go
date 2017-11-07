@@ -100,12 +100,13 @@ type ErrorObject struct {
 }
 
 type RefundData struct {
-	Amount             int    `json:"amount"`
-	BalanceTransaction string `json:"balance_transaction"`
-	Charge             string `json:"charge"`
-	Created            int64    `json:"created"`
-	Currency           string `json:"currency"`
-	ID                 string `json:"id"`
-	Object             string `json:"object"`
-	Status             string `json:"status"`
+	Amount             int    `json:"amount,omitempty"`
+	BalanceTransaction string `json:"balance_transaction,omitempty"`
+	Charge             string `json:"charge,omitempty"`
+	Created            int64  `json:"created,omitempty"`
+	Currency           string `json:"currency,omitempty"`
+	ID                 string `json:"id,omitempty"`
+	Object             string `json:"object,omitempty"`
+	Status             string `json:"status,omitempty"`
+	Reason             string `json:"reason,omitempty"`
 }

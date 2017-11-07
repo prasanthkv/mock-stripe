@@ -157,7 +157,7 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 			chargeCache.Set(chargeId, chargeObject, cache.DefaultExpiration)
 		}
 		//put object into cache
-		cacheObject := CacheObject{
+		cacheableObject := CacheObject{
 			RequestId:   requestId,
 			Charge:      chargeObject,
 			Error:       errorObject,
@@ -167,7 +167,7 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 			Type: "auth",
 		}
 		//set item
-		authCache.Set(idempotencyKey, cacheObject, cache.DefaultExpiration)
+		authCache.Set(idempotencyKey, cacheableObject, cache.DefaultExpiration)
 		//should be the last
 		w.WriteHeader(status)
 	}

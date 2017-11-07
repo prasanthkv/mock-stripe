@@ -13,7 +13,8 @@ import (
 var authCache = cache.New(5*time.Hour, 5*time.Hour)
 var chargeCache = cache.New(5*time.Hour, 5*time.Hour)
 var captureCache = cache.New(5*time.Hour, 5*time.Hour)
-var idempotencyCache = cache.New(5*time.Hour, 5*time.Hour)
+var voidCache = cache.New(5*time.Hour, 5*time.Hour)
+
 
 type CacheObject struct {
 	Status      int
@@ -21,6 +22,7 @@ type CacheObject struct {
 	RequestHash string
 	Idempotency string
 	Charge      ChargeObject
+	Refund		RefundData
 	Error       ErrorResponse
 	Type		string
 }
@@ -35,4 +37,15 @@ func MD5Hash(v interface{}) (string) {
 	md5Bytes := md5.Sum(aStringToHash)
 	//hash
 	return hex.EncodeToString(md5Bytes[:])
+}
+
+//cache to manage idempotency
+
+var idempotencyCache = cache.New(5*time.Hour, 5*time.Hour)
+//
+type Idempotency struct {
+	Type      string
+	RequestId   string
+	ChargeId	string
+	RequestHash string
 }
