@@ -20,6 +20,8 @@ brew install go --cross-compile-common
 Or if you have Go installed you can build it:
 
 ``` sh
+go get 
+
 go build
 ```
 
