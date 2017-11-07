@@ -17,7 +17,7 @@ func LastFour(value int64) (trimValue string) {
 	if length > 4 {
 		runes := []rune(tempString)
 		safeSubstring := string(runes[(length - 4):length])
-		return safeSubstring;
+		return safeSubstring
 	}
 	return tempString
 }

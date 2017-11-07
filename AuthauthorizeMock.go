@@ -29,7 +29,7 @@ func AuthauthorizeHandler(w http.ResponseWriter, r *http.Request) {
 	header.Set("stripe-version", "mock-1.0")
 	header.Set("request-id", requestId)
 	//copy the idempotency key to response
-	idempotencyKey := r.Header.Get("idempotency-key");
+	idempotencyKey := r.Header.Get("idempotency-key")
 	header.Set("idempotency-key", idempotencyKey)
 	//make hash of form this will help maintain idempotency
 	formHash := MD5Hash(r.Form)

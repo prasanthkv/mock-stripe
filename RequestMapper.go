@@ -37,7 +37,7 @@ func ValidateAndMapAuth(r *http.Request) (chargeRequest ChargeRequest, errorObje
 		return chargeRequest, errorObjects, httpStatus
 	}
 	//evaluate exp month
-	if ((cardExpMonth < 1 && cardExpMonth > 12) || (cardExpYear == time.Now().Year() && cardExpMonth < int(time.Now().Month()))) {
+	if (cardExpMonth < 1 && cardExpMonth > 12) || (cardExpYear == time.Now().Year() && cardExpMonth < int(time.Now().Month())) {
 		//card should be of 16 digit
 		errorObjects.Error.Type = "card_error"
 		errorObjects.Error.Param = "exp_month"
@@ -132,7 +132,7 @@ func ValidateAndMapAuth(r *http.Request) (chargeRequest ChargeRequest, errorObje
 	default:
 		httpStatus = http.StatusOK
 	}
-	return chargeRequest, errorObjects, httpStatus;
+	return chargeRequest, errorObjects, httpStatus
 }
 
 func FindFist(arrayValue []string) (string){
