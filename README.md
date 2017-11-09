@@ -14,29 +14,29 @@ the [API reference](https://stripe.com/docs/api).
 
 Get it from Homebrew
 
-``` sh
+~~~ sh
 brew install go --cross-compile-common
-```
+~~~
 
 Or if you have Go installed you can build it:
 
-``` sh
+~~~ sh
 go get 
 
 go build
-```
+~~~
 
 Run it:
 
-``` sh
+~~~ sh
 mockstripe
-```
+~~~
 
 Then from another terminal:
 
-``` sh
+~~~ sh
 curl -i http://localhost:8080/v1/version -H "Authorization: Bearer sk_test_123"
-```
+~~~
 
 By default, stripe-mock runs on port 8080, but is configurable with the
 `-port` option. (TODO)
@@ -49,6 +49,42 @@ TBD
 - [x] Auth
 - [x] Capture
 - [x] Refund
+
+### Auth
+~~~
+curl -X POST \
+  http://localhost:8080/v1/charges \
+  -H 'accept: application/json' \
+  -H 'authorization: Bearer sk_test_0zzzz0zXXzOXXXX4X00zXzz0' \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/x-www-form-urlencoded' \
+  -H 'idempotency-key: a_1307' \
+  -d 'capture=false&amount=1000&currency=usd&destination%5Baccount%5D=acct_1AsDVNAeE9ZhXsLk&destination%5Bamount%5D=1000&source%5Baddress_line1%5D=2145%20Hamilton%20Avenue&source%5Baddress_city%5D=San%20Jose&source%5Bobject%5D=card&source%5Bnumber%5D=4000000000000077&source%5Bexp_year%5D=2022&source%5Bexp_month%5D=1&source%5Bname%5D=QIB&source%5Baddress_state%5D=CA&source%5Baddress_zip%5D=95125&source%5Baddress_country%5D=US&description=eBay%3A%20pkv_usa'
+~~~
+
+### Capture
+~~~
+curl -X POST \
+  http://localhost:8080/v1/charges/ch_1TESTAGQ2G0H1tnT4CMErOEL/capture \
+  -H 'accept: application/json' \
+  -H 'authorization: Bearer sk_test_0zzzz0zXXzOXXXX4X00zXzz0' \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/x-www-form-urlencoded' \
+  -H 'idempotency-key: c_1308' \
+  -d 'amount=500&destination%5Bamount%5D=500'
+~~~
+
+### Refund
+~~~
+curl -X POST \
+  http://localhost:8080/v1/charges/ch_1TESTAGQ2G0H1tnT4CMErOEL/refunds \
+  -H 'accept: application/json' \
+  -H 'authorization: Bearer sk_test_0zzzz0zXXzOXXXX4X00zXzz0' \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/x-www-form-urlencoded' \
+  -H 'idempotency-key: c_1308' \
+  -d 'amount=500&destination%5Bamount%5D=500'
+~~~
 
 ## License
 
