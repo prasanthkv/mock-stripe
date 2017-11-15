@@ -1,5 +1,7 @@
 # mock-stripe  ![version](https://img.shields.io/badge/version-1.0.1--Mock-orange.svg?style=flat) ![License: MIT](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)
 
+[![Build Status](https://semaphoreci.com/api/v1/mikeb01/disruptor/branches/master/badge.svg)](https://github.com/kvlabs/mock-stripe/releases)
+
 
 mock-stripe is a mock HTTP server that responds like the real Stripe API. It
 can be used instead of Stripe's testmode to make test suites integrating with
